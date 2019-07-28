@@ -1,3 +1,386 @@
-# myRepository
-my first repository
-here is my first edit branch
+框架的概述
+
+框架（Framework）是整个或部分系统的可重用设计，表现为一组抽象构建级构建实例间交互的方法；另一种定义认为，框架可以被应用开发这定制的应用骨架，前者是从应用方面二后者是从木的方面给出的定义
+
+简而言之，框架就是某种应用的半成品，就是一组组建，供你选用完成自己的系统
+
+常见Javaee开发框架
+
+- MyBatis——解决数据得持久化问题的框架
+
+持久层框架，半自动持久层框架，其他全自动持久层框架Hibernate（封装度更高），Spring Data也是全自动持久层框架，是在Hibernate的基础上再封装
+
+-  Spring MVC——解决WEB层问题的MVC框架
+
+Spring框架提供了构建Web应用程序的全功能MVC模块
+
+使用SpringMVC框架或集成其他MVC开发框架，Struts2
+
+- Spring——解决技术整合问题的框架
+  开放源代码的设计层面框架，他解决的是业务逻辑层和其他各层面的松耦合问题
+  主要思想面向接口编程、IOC（控制反转）、AOP（面向切面编程）
+  目的：解决企业应用开发的复杂性
+  功能：使用基本定的JavaBean代替EJB
+  范围：任何Java应用
+
+Mybatis概述
+
+Mybatis是一个持久层框架
+
+核心思想ORM：解决实体和数据库映射问题
+
+Mybatis入门
+
+1.导入依赖
+
+    <!-- mybatis -->
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis</artifactId>
+        <version>3.4.5</version>
+    </dependency>
+    <!-- mysql数据库连接 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.18</version>
+    </dependency>
+    <!-- 日志坐标 -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.12</version>
+    </dependency>
+
+
+
+2.mybatis配置文件
+
+参考官网api http://www.mybatis.org/mybatis-3/zh/index.html 
+
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <!DOCTYPE configuration
+      PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-config.dtd">
+    <configuration>
+      <environments default="development">
+        <environment id="development">
+          <transactionManager type="JDBC"/>
+          <dataSource type="POOLED">
+            <property name="driver" value="${driver}"/>
+            <property name="url" value="${url}"/>
+            <property name="username" value="${username}"/>
+            <property name="password" value="${password}"/>
+          </dataSource>
+        </environment>
+      </environments>
+      <!-- 配置mapper路径，入门操作，项目中实际扫描各个包下的xml文件进行自动配置 -->
+      <mappers>
+        <mapper resource="org/mybatis/example/BlogMapper.xml"/>
+      </mappers>
+    </configuration>
+
+3.实体类创建
+
+根据自己创建的表结构创建相应的实体，建议字段名与数据库保持一致，字段名若不一致请参考官方文档解决
+
+4.创建Dao接口
+
+    public interface UserDao {
+        List<User> queryAllUser();
+    
+        List<User> queryFuzzyUser(String name);
+    
+        void insertUser(User user);
+    }
+
+
+
+5.创建接口映射xml文件
+
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <!DOCTYPE mapper
+            PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+            "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+    <mapper namespace="dao.UserDao">
+        <select id="queryAllUser" resultType="user">
+            select * from user
+        </select>
+        
+        <select id="queryFuzzyUser" resultType="user">
+            select * from user where username like '%${value}%'
+        </select>
+    
+        <insert id="insertUser" parameterType="user">
+    
+        </insert>
+    </mapper>
+
+
+
+6.创建测试类
+
+    import dao.UserDao;
+    import domian.User;
+    import org.apache.ibatis.io.Resources;
+    import org.apache.ibatis.session.SqlSession;
+    import org.apache.ibatis.session.SqlSessionFactory;
+    import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+    import org.junit.After;
+    import org.junit.Before;
+    import org.junit.Test;
+    
+    import java.io.IOException;
+    import java.io.InputStream;
+    import java.util.List;
+    
+    public class UserDaoTest {
+        InputStream inputStream;
+        SqlSession sqlSession;
+        UserDao userDao;
+    
+        @Before
+        public void getUserDao() throws IOException {
+            // 1.读取配置文件
+            inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+            // 2.SqlSessionFactoryBuilder 创建factory
+            SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(inputStream);
+            // 3.获取sqlSession对象
+            sqlSession = factory.openSession();
+            // 4.使用SqlSession获取dao代理对象
+            userDao = sqlSession.getMapper(UserDao.class);
+        }
+        @After
+        public void release() throws IOException {
+            // 6.释放资源
+            sqlSession.close();
+            inputStream.close();
+        }
+    
+        @Test
+        public void queryAllUser(){
+            // 5.执行sql获取查询结果
+            List<User> users = userDao.queryAllUser();
+    
+            for (User user: users) {
+                System.out.println(user);
+            }
+        }
+    
+        @Test
+        public void queryFuzzyUser(){
+            List<User> users = userDao.queryFuzzyUser("王");
+            for (User user: users) {
+                System.out.println(user);
+            }
+        }
+    }
+
+
+
+7.添加日志配置文件
+
+——mybatis需要设置日志
+
+    # Set root category priority to INFO and its only appender to CONSOLE.
+    #log4j.rootCategory=INFO, CONSOLE            debug   info   warn error fatal
+    log4j.rootCategory=info, CONSOLE, LOGFILE
+    
+    # Set the enterprise logger category to FATAL and its only appender to CONSOLE.
+    log4j.logger.org.apache.axis.enterprise=FATAL, CONSOLE
+    
+    # CONSOLE is set to be a ConsoleAppender using a PatternLayout.
+    log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+    log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+    log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} %-6r [%15.15t] %-5p %30.30c %x - %m\n
+    
+    # LOGFILE is set to be a File appender using a PatternLayout.
+    log4j.appender.LOGFILE=org.apache.log4j.FileAppender
+    log4j.appender.LOGFILE.File=d:/axis.log
+    log4j.appender.LOGFILE.Append=true
+    log4j.appender.LOGFILE.layout=org.apache.log4j.PatternLayout
+    log4j.appender.LOGFILE.layout.ConversionPattern=%d{ISO8601} %-6r [%15.15t] %-5p %30.30c %x - %m\n
+
+Mybatis的CRUD（操作接口）
+
+查询操作
+
+（略）详见代码
+
+新增
+
+- UserDao.java
+      /**
+      * 新增数据
+      * @param user 用户实体
+      */
+      void insertUser(User user);
+  
+- UserMapper.xml
+      <!--新增用户信息-->
+      <insert id="insertUser" parameterType="user">
+           insert into user values(NULL ,#{username},#{birthday},#{sex},#{address})
+      </insert>
+  
+- UserDaoTest.java
+      @Test
+      public void insertUser(){
+          User user = new User();
+          user.setUsername("小鱿不可爱");
+          user.setSex("女");
+          user.setBirthday(new Date());
+          user.setAddress("深圳");
+          System.out.println(user);
+          userDao.insertUser(user);
+          System.out.println(user);
+      }
+  执行结果
+  
+
+扩展：新增数据后将id返回设置回请求实体
+
+	实际操作使用mybatis标签
+
+     <insert id="insertUser" parameterType="user">
+        <selectKey keyProperty="id" keyColumn="id" resultType="int" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into user values(NULL ,#{username},#{birthday},#{sex},#{address})
+    </insert>
+
+
+
+修改结果
+
+
+
+模糊查询
+
+- UserDao.java
+      /**
+      * 根据传入用户名进行模糊查询
+      * @param name 用户名
+      * @return
+      */
+      List<User> queryFuzzyUser(String name);
+  
+- UserMapper.xml
+       <!--条件模糊查询-->
+      <select id="queryFuzzyUser" resultType="user">
+          select * from user where username like '%${value}%'
+      </select>
+  
+- UserDaoTest.java
+      @Test
+      public void queryFuzzyUser(){
+          List<User> users = userDao.queryFuzzyUser("王");
+          for (User user: users) {
+              System.out.println(user);
+          }
+      }
+  
+
+Mybatis参数深入
+
+#{} 和 ${}区别
+
+#{} 会被当做占位符？进行预处理，安全性相对高
+
+${} 不会将传入值进行转义处理而是直接当作sql，如果无法控制输入，这将会出现sql注入问题，安全性低
+
+数据库字段和对象属性不一致问题
+
+- sql编写使用字段别名与实体类一致，大小写无关
+- 定义resultMap
+  - userDao.java
+        /**
+        * 查询所有用户,处理实体类与数据库字段不对应问题（使用resultMap）
+        * @return
+        */
+        List<UserCopy> queryAllUserCopy();
+  - UserCopy.java
+        public class UserCopy {
+            private Integer userId;
+            private String userName;
+            private Date userBirthday;
+            private String userSex;
+            private String userAddress;
+        
+            public Integer getUserId() {
+                return userId;
+            }
+        
+            public void setUserId(Integer userId) {
+                this.userId = userId;
+            }
+        
+            public String getUserName() {
+                return userName;
+            }
+        
+            public void setUserName(String userName) {
+                this.userName = userName;
+            }
+        
+            public Date getUserBirthday() {
+                return userBirthday;
+            }
+        
+            public void setUserBirthday(Date userBirthday) {
+                this.userBirthday = userBirthday;
+            }
+        
+            public String getUserSex() {
+                return userSex;
+            }
+        
+            public void setUserSex(String userSex) {
+                this.userSex = userSex;
+            }
+        
+            public String getUserAddress() {
+                return userAddress;
+            }
+        
+            public void setUserAddress(String userAddress) {
+                this.userAddress = userAddress;
+            }
+        
+            @Override
+            public String toString() {
+                return "UserCopy{" +
+                        "userId=" + userId +
+                        ", userName='" + userName + '\'' +
+                        ", userBirthday=" + userBirthday +
+                        ", userSex='" + userSex + '\'' +
+                        ", userAddress='" + userAddress + '\'' +
+                        '}';
+            }
+        }
+  - UserMapper.xml
+        <resultMap id="userMap" type="domian.UserCopy">
+            <id property="" column=""/>
+            <result property="userId" column="id"/>
+            <result property="userName" column="username"/>
+            <result property="userBirthday" column="birthday"/>
+            <result property="userSex" column="sex"/>
+            <result property="userAddress" column="address"/>
+        </resultMap>
+        <!--查询所有用户-->
+        <select id="queryAllUserCopy" resultMap="userMap">
+            select * from user
+        </select>
+  - UserDaoTest.java
+        @Test
+        public void queryAllUserCopy(){
+            List<UserCopy> users = userDao.queryAllUserCopy();
+        
+            for (UserCopy user: users) {
+                System.out.println(user);
+            }
+        }
+
+Mybatis实现Dao接口的实现类开发
+
+
