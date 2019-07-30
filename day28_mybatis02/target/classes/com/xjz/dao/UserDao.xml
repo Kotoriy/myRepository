@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjz.dao.UserDao">
+    <sql id="getUser">
+        select * from user
+    </sql>
+    <!--查询所有用户信息-->
+    <select id="getAllUser" resultType="user">
+        <include refid="getUser"/>
+    </select>
+    <select id="getUserByCondition" resultType="user">
+        <include refid="getUser"/>
+        <where>
+            <if test="username != null and '' != username">
+                and username = #{username}
+            </if>
+            <if test="sex != null and  '' != sex">
+                and sex = #{sex}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertUserByList" parameterType="user">
+        insert into user VALUES
+        <foreach collection="users" item="item" separator=",">
+            (NULL , #{item.username}, #{item.birthday}, #{item.sex}, #{item.address})
+        </foreach>
+    </insert>
+    <resultMap id="UserAccountInfo" type="user">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="birthday" column="birthday"/>
+        <result property="sex" column="sex" />
+        <result property="address" column="address"/>
+        <collection property="accounts" ofType="account">
+            <id property="id" column="aid"/>
+            <result property="uid" column="uid"/>
+            <result property="money" column="money"/>
+        </collection>
+    </resultMap>
+    <select id="getUserAndAcounts" resultMap="UserAccountInfo">
+        select u.*,a.id as aid, a.uid, a.money from user u left join account a on u.id = a.uid
+    </select>
+</mapper>
