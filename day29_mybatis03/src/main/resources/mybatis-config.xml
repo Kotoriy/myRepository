@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--mybatis的核心配置文件-->
+<configuration>
+    <!--properties加载外部的属性文件
+        resource：从当前项目加载（读取项目资源路径下的文件），使用${}读取属性文件中的内容
+        url：从外部的资源加载文件（需要指定外部资源的绝对路径）
+    -->
+    <properties resource="jdbc.properties">
+    <!--使用url属性时需要注意使用文件协议才能读取到配置文件-->
+    <!--<properties url="file:///E:\workspace\day28_mybatis02\src\main\resources\jdbc.properties">-->
+    </properties>
+    
+    <settings>
+        <!--打开延迟加载的开关-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!--将立即加载改为按需加载，即延迟加载-->
+        <setting name="aggressiveLazyLoading" value="false"/>
+    </settings>
+
+    <!--配置别名：不区分大小写
+        typeAlias：一次指定一个实体
+        package：指定包下的所有实体都可以使用别名，别名的名称就是当前实体的类名
+    -->
+    <typeAliases>
+        <!--<typeAlias type="com.xjz.domain.User" alias="user"/>-->
+        <package name="com.xjz.domain"/>
+    </typeAliases>
+
+    <!--1:配置连接数据库的环境
+        environments default="mysql"：名称随便填写
+        environment id="mysql"：id表示当前环境的唯一标识
+        transactionManager type="JDBC"：事务管理器，JDBC是固定要求
+        dataSource type="POOLED"：数据源的连接池，POOLED固定写法，表示使用连接池
+                底层：Opening JDBC Connection
+                      Created connection 14348096.
+                      Closing JDBC Connection
+                      Returned connection 14348096 to pool.
+
+        dataSource type="UNPOOLED"：数据源的连接池，UNPOOLED固定写法，表示不使用连接池
+                底层：Opening JDBC Connection
+                      Closing JDBC Connection
+    -->
+    <environments default="mysql">
+        <environment id="mysql">
+            <transactionManager type="JDBC"></transactionManager>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--2：加载映射文件
+        mapper resource：从资源文件中读取内容，指定映射文件
+        mapper class：从类文件中读取内容，指定类（必须保证Dao的类和映射文件放置到同一个包下，而且名称要一致），应用场景一般在注解的使用
+        package name="com.itheima.dao"：指定com.itheima.dao包下的所有Dao类都会被加载映射（必须保证Dao的类和映射文件放置到同一个包下，而且名称要一致），，应用场景一般在映射文件、注解的使用
+    -->
+    <mappers>
+        <!--<mapper resource="com/xjz/dao/UserMapper.xml"/>-->
+        <!--<mapper class="com.xjz.dao.UserDao"></mapper>-->
+        <package name="com.xjz.dao"/>
+    </mappers>
+</configuration>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjz.dao.AccountDao">
+    <cache></cache>
+    <select id="getAccountsByUId" resultType="account">
+        select * from account where uid = #{uid}
+    </select>
+
+    <resultMap id="accountMap" type="AccountUser">
+        <id column="id" property="id"/>
+        <result column="uid" property="uid"/>
+        <result column="money" property="money"/>
+        <!--association用来关联对象，
+            property代表加载对象，
+            javaType代表加载对象的数据类型，可以写成com.itheima.domain.User
+            select 属性指定的内容：查询用户的唯一标识，指延迟加载要执行的statement的id
+                                    要使用UserDao.xml中的findById完成根据用户id查询用户信息
+            column 属性指定的内容：用户根据id查询时，所需要的参数的值
+            fetchType:
+                eager：立即检索
+                lazy：延迟检索-->
+        <association property="user" javaType="user" column="uid" select="com.xjz.dao.UserDao.getUserById" fetchType="eager"/>
+    </resultMap>
+    <select id="getAllAccountUser" resultMap="accountMap">
+        select * from account
+    </select>
+</mapper>
