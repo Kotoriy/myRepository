@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="accountDao" class="com.xjz.dao.impl.AccountDaoImpl"></bean>
+    <bean id="birthday" class="java.util.Date"></bean>
+
+    <!--构造方法实例化bean-->
+    <bean id="accountService" class="com.xjz.service.impl.AccountServiceImpl">
+        <!--构造方法注入-->
+        <!--<constructor-arg name="name" value="小鱿不可爱"></constructor-arg>-->
+        <!--<constructor-arg name="age" value="18"></constructor-arg>-->
+        <!--<constructor-arg name="birthday" ref="birthday"></constructor-arg>-->
+
+        <!--set方法注入-->
+        <property name="name" value="小鱿不可爱"></property>
+        <property name="age" value="18"></property>
+        <property name="birthday" ref="birthday"></property>
+        <property name="list">
+            <list>
+                <value>小鱿不可爱</value>
+                <value>18</value>
+                <ref bean="birthday"></ref>
+            </list>
+        </property>
+        <property name="accountDao" ref="accountDao"></property>
+    </bean>
+
+    <!--静态工厂实例化bean，第三方提供的类，无法对构造函数进行修改时使用-->
+    <!--<bean id="accountService" class="com.xjz.factory.StaticFactory" factory-method="getAccountService"></bean>-->
+
+    <!--实例工厂实例化bean-->
+    <!--<bean id="instanceFactory" class="com.xjz.factory.InstanceFactory"></bean>-->
+    <!--<bean id="accountService" factory-bean="instanceFactory" factory-method="getAccountService"></bean>-->
+
+
+</beans>
